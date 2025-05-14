@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageItem } from "@/types/image";
@@ -14,7 +13,6 @@ import Header from "@/components/Header";
 import ImageUploader from "@/components/ImageUploader";
 import ComparisonArena from "@/components/ComparisonArena";
 import RankingsList from "@/components/RankingsList";
-import ResetDialog from "@/components/ResetDialog";
 
 const Index = () => {
   const [images, setImages] = useState<ImageItem[]>([]);
@@ -40,6 +38,17 @@ const Index = () => {
       const totalMatches = savedImages.reduce((sum, img) => sum + img.matches, 0);
       setTotalComparisons(totalMatches / 2);
     }
+    
+    // Listen for reset events from the Header component
+    const handleResetEvent = () => {
+      handleReset();
+    };
+    
+    window.addEventListener('app:reset', handleResetEvent);
+    
+    return () => {
+      window.removeEventListener('app:reset', handleResetEvent);
+    };
   }, []);
 
   // Check if images have their URL (which means they have actual files)
@@ -226,12 +235,6 @@ const Index = () => {
           )}
         </div>
       </main>
-      
-      <ResetDialog
-        open={resetDialogOpen}
-        onOpenChange={setResetDialogOpen}
-        onConfirm={handleReset}
-      />
     </div>
   );
 };
