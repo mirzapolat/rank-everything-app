@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageItem } from "@/types/image";
 import { 
@@ -13,6 +13,8 @@ import Header from "@/components/Header";
 import ImageUploader from "@/components/ImageUploader";
 import ComparisonArena from "@/components/ComparisonArena";
 import RankingsList from "@/components/RankingsList";
+import { Upload, Folder } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 const Index = () => {
   const [images, setImages] = useState<ImageItem[]>([]);
@@ -22,6 +24,8 @@ const Index = () => {
   const [needsImageFiles, setNeedsImageFiles] = useState<boolean>(false);
   const [totalComparisons, setTotalComparisons] = useState<number>(0);
   const [imagesImported, setImagesImported] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Load saved images from localStorage on component mount
@@ -133,23 +137,26 @@ const Index = () => {
     fileInput.click();
   };
 
-  const handleSelectImageFiles = () => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.multiple = true;
-    
-    fileInput.onchange = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (target.files && target.files.length > 0) {
-        const updatedImages = updateImagesWithFiles(images, Array.from(target.files));
-        setImages(updatedImages);
-        setNeedsImageFiles(false);
-        toast.success(`Matched ${target.files.length} image files with imported data`);
-      }
-    };
-    
-    fileInput.click();
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const updatedImages = updateImagesWithFiles(images, Array.from(files));
+      setImages(updatedImages);
+      setNeedsImageFiles(false);
+      toast.success(`Matched ${files.length} image files with imported data`);
+    }
+  };
+
+  const handleSelectFiles = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleSelectFolder = () => {
+    if (folderInputRef.current) {
+      folderInputRef.current.click();
+    }
   };
 
   useEffect(() => {
@@ -200,14 +207,55 @@ const Index = () => {
                 </Button>
               </div>
               
-              {/* Show file selection prompt after importing */}
+              {/* Show file selection options after importing */}
               {needsImageFiles && (
-                <div className="p-4 border rounded-md bg-muted/30">
-                  <p className="mb-3">You've imported ranking data, but need to select the corresponding image files.</p>
-                  <Button onClick={handleSelectImageFiles}>
-                    Select Image Files
-                  </Button>
-                </div>
+                <Card className="p-6 flex flex-col items-center justify-center border-dashed border-2 bg-muted/50">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-medium">Select Image Files</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Choose how you want to add images to match with your imported data
+                    </p>
+                  </div>
+                  
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                    multiple
+                    accept="image/*"
+                  />
+                  
+                  <input
+                    type="file"
+                    ref={folderInputRef}
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                    directory=""
+                    webkitdirectory=""
+                    multiple
+                    accept="image/*"
+                  />
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+                    <Button 
+                      onClick={handleSelectFiles}
+                      className="flex-1 gap-2"
+                      variant="outline"
+                    >
+                      <Upload size={18} />
+                      Select Files
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleSelectFolder}
+                      className="flex-1 gap-2"
+                    >
+                      <Folder size={18} />
+                      Select Folder
+                    </Button>
+                  </div>
+                </Card>
               )}
               
               {/* Only show uploader if there are no images or less than 2 */}
