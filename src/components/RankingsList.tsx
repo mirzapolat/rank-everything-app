@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ImageItem } from "@/types/image";
 import { Card } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { List, Grid2X2, Download, Minimize, ArrowLeft, ArrowRight } from "lucide-react";
+import { List, Grid2X2, Download, Minimize, ArrowLeft, ArrowRight, FileZip } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
@@ -193,37 +193,64 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-2xl font-bold">Image Rankings</h2>
-        
-        <div className="flex flex-wrap items-center gap-4">
-          {/* View toggle positioned on the right */}
-          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
-            <ToggleGroupItem value="grid" aria-label="Grid view">
-              <Grid2X2 className="h-4 w-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label="List view">
-              <List className="h-4 w-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
       </div>
       
-      {/* Card size slider positioned in the middle for better access on laptops */}
-      {viewMode === "grid" && (
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-          <span className="text-sm font-medium whitespace-nowrap">Card Size:</span>
-          <Slider 
-            value={[cardSize]} 
-            onValueChange={([value]) => setCardSize(value)}
-            min={180} 
-            max={400}
-            step={10}
-            className="max-w-[300px] w-full"
-          />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        {/* Export as ZIP button on the left */}
+        <div className="flex items-center gap-2">
+          <ExportRankingsButton images={images} />
+          
+          {/* Export Progress button next to it */}
+          <Button
+            variant="outline"
+            className="w-full md:w-auto"
+            disabled={images.length === 0}
+            onClick={() => {
+              try {
+                const link = document.createElement('a');
+                const data = JSON.stringify(images, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                link.href = URL.createObjectURL(blob);
+                link.download = `rankings_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              } catch (error) {
+                console.error("Export error:", error);
+              }
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export Progress
+          </Button>
         </div>
-      )}
-      
-      <div className="flex flex-col gap-4 md:flex-row md:justify-between">
-        <ExportRankingsButton images={images} />
+
+        {/* Card size slider in the middle */}
+        <div className="flex-grow flex items-center gap-2 max-w-md mx-2">
+          {viewMode === "grid" && (
+            <div className="flex items-center gap-2 w-full">
+              <span className="text-sm font-medium whitespace-nowrap">Size:</span>
+              <Slider 
+                value={[cardSize]} 
+                onValueChange={([value]) => setCardSize(value)}
+                min={180} 
+                max={400}
+                step={10}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* View toggle buttons on the right */}
+        <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
+          <ToggleGroupItem value="grid" aria-label="Grid view">
+            <Grid2X2 className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="List view">
+            <List className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
       
       {viewMode === "grid" ? renderGridView() : renderListView()}
@@ -256,46 +283,33 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
               </DialogClose>
             </div>
             
-            <div className="flex-1 flex items-center justify-center p-4 h-full relative">
-              {/* Navigation buttons */}
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={handlePrevious}
-                className="absolute left-4 z-10 bg-black/50 hover:bg-black/70 text-white border-none"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Previous image</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={handleNext}
-                className="absolute right-4 z-10 bg-black/50 hover:bg-black/70 text-white border-none"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span className="sr-only">Next image</span>
-              </Button>
-              
-              {selectedImage && (
-                <img
-                  src={selectedImage.url}
-                  alt={selectedImage.name}
-                  className="max-h-full max-w-full object-contain"
-                />
-              )}
-            </div>
+            {/* Navigation buttons */}
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handlePrevious}
+              className="absolute left-4 z-10 bg-black/50 hover:bg-black/70 text-white border-none"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Previous image</span>
+            </Button>
             
-            {selectedImage && selectedImageIndex !== null && (
-              <div className="p-4 text-center bg-background">
-                <h3 className="text-lg font-medium">{selectedImage.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Rank: {selectedImageIndex + 1}/{sortedImages.length} • 
-                  {Math.round(selectedImage.rating)} ELO • 
-                  {selectedImage.matches} comparison{selectedImage.matches !== 1 ? 's' : ''}
-                </p>
-              </div>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleNext}
+              className="absolute right-4 z-10 bg-black/50 hover:bg-black/70 text-white border-none"
+            >
+              <ArrowRight className="h-4 w-4" />
+              <span className="sr-only">Next image</span>
+            </Button>
+            
+            {selectedImage && (
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.name}
+                className="max-h-full max-w-full object-contain"
+              />
             )}
           </div>
         </DialogContent>
