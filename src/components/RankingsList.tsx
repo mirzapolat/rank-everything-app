@@ -402,34 +402,43 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
               </DialogClose>
             </div>
             
-            {/* Navigation buttons */}
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handlePrevious}
-              className="absolute left-4 z-10 bg-black/50 hover:bg-black/70 text-white border-none"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="sr-only">Previous image</span>
-            </Button>
+            {/* Navigation buttons moved to the bottom */}
+            <div className="flex-1 flex items-center justify-center">
+              {selectedImage && (
+                <img
+                  src={selectedImage.url}
+                  alt={selectedImage.name}
+                  className="max-h-full max-w-full object-contain"
+                />
+              )}
+            </div>
             
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handleNext}
-              className="absolute right-4 z-10 bg-black/50 hover:bg-black/70 text-white border-none"
-            >
-              <ArrowRight className="h-4 w-4" />
-              <span className="sr-only">Next image</span>
-            </Button>
-            
-            {selectedImage && (
-              <img
-                src={selectedImage.url}
-                alt={selectedImage.name}
-                className="max-h-full max-w-full object-contain"
-              />
-            )}
+            {/* Navigation controls now positioned at bottom */}
+            <div className="flex justify-center items-center gap-4 p-4 bg-black/50">
+              <Button 
+                variant="outline" 
+                onClick={handlePrevious}
+                className="bg-black/50 hover:bg-black/70 text-white border-none"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Previous
+              </Button>
+              
+              {selectedImageIndex !== null && (
+                <span className="text-white text-sm">
+                  {selectedImageIndex + 1} of {sortedImages.length}
+                </span>
+              )}
+              
+              <Button 
+                variant="outline" 
+                onClick={handleNext}
+                className="bg-black/50 hover:bg-black/70 text-white border-none"
+              >
+                Next
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
