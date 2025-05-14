@@ -20,7 +20,7 @@ interface RankingsListProps {
 const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [gridSize, setGridSize] = useState<number>(52); // Default height in pixels * 6
+  const [cardSize, setCardSize] = useState<number>(300); // Larger default size
   const sortedImages = [...images].sort((a, b) => b.rating - a.rating);
 
   const selectedImage = selectedImageIndex !== null ? sortedImages[selectedImageIndex] : null;
@@ -90,6 +90,12 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
     setSelectedImageIndex(selectedImageIndex > 0 ? selectedImageIndex - 1 : sortedImages.length - 1);
   };
 
+  // Calculate image height based on card size, with a min/max range
+  const getImageHeight = () => {
+    // Image height is proportional to card size but with a reasonable min/max
+    return Math.max(120, cardSize - 80); // Subtract space for metadata
+  };
+
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {sortedImages.map((image, index) => (
@@ -97,8 +103,16 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
           key={image.id} 
           className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow"
           onClick={() => handleImageClick(index)}
+          style={{ 
+            // Apply the card size to control the overall card size
+            maxWidth: `${cardSize * 1.2}px`,
+            width: '100%'
+          }}
         >
-          <div className={`relative overflow-hidden bg-muted`} style={{ height: `${gridSize}px` }}>
+          <div 
+            className="relative overflow-hidden bg-muted" 
+            style={{ height: `${getImageHeight()}px` }}
+          >
             <div className="h-full w-full flex items-center justify-center">
               <img 
                 src={image.url} 
@@ -173,20 +187,8 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-2xl font-bold">Image Rankings</h2>
         
-        <div className="flex items-center gap-4">
-          {viewMode === "grid" && (
-            <div className="flex items-center gap-2 flex-1 md:max-w-xs">
-              <span className="text-sm whitespace-nowrap">Card Size:</span>
-              <Slider 
-                value={[gridSize]} 
-                onValueChange={([value]) => setGridSize(value)}
-                min={120} 
-                max={400} 
-                step={10}
-                className="flex-1"
-              />
-            </div>
-          )}
+        <div className="flex flex-wrap items-center gap-4">
+          {/* View toggle positioned on the right */}
           <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
             <ToggleGroupItem value="grid" aria-label="Grid view">
               <Grid2X2 className="h-4 w-4" />
@@ -197,6 +199,21 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
           </ToggleGroup>
         </div>
       </div>
+      
+      {/* Card size slider positioned in the middle for better access on laptops */}
+      {viewMode === "grid" && (
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+          <span className="text-sm font-medium whitespace-nowrap">Card Size:</span>
+          <Slider 
+            value={[cardSize]} 
+            onValueChange={([value]) => setCardSize(value)}
+            min={180} 
+            max={400}
+            step={10}
+            className="max-w-[300px] w-full"
+          />
+        </div>
+      )}
       
       <div className="flex flex-col gap-4 md:flex-row md:justify-between">
         <ExportRankingsButton images={images} />
@@ -281,3 +298,4 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
 };
 
 export default RankingsList;
+
