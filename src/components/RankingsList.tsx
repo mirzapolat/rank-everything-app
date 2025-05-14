@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ImageItem } from "@/types/image";
 import { Card } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { List, Grid2X2, Download, Minimize, ArrowLeft, ArrowRight, FileArchive } from "lucide-react";
+import { List, Grid2X2, Download, Minimize, ArrowLeft, ArrowRight } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
@@ -12,18 +12,78 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider"; 
 import ExportRankingsButton from "./ExportRankingsButton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/ui/use-toast";
 
 interface RankingsListProps {
   images: ImageItem[];
 }
 
+const ITEMS_PER_PAGE = 100;
+
 const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [cardSize, setCardSize] = useState<number>(300); // Larger default size
+  const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
+  
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  
+  // Sort images by rating (highest first)
   const sortedImages = [...images].sort((a, b) => b.rating - a.rating);
-
+  
+  // Get the current visible images
+  const visibleImages = sortedImages.slice(0, visibleCount);
+  
+  // Reference to the currently selected image
   const selectedImage = selectedImageIndex !== null ? sortedImages[selectedImageIndex] : null;
+
+  // Infinite scroll implementation
+  const loadMore = useCallback(() => {
+    if (visibleCount < sortedImages.length) {
+      const nextCount = Math.min(visibleCount + ITEMS_PER_PAGE, sortedImages.length);
+      setVisibleCount(nextCount);
+      
+      if (nextCount === sortedImages.length && nextCount > ITEMS_PER_PAGE) {
+        toast({
+          title: "All images loaded",
+          description: `Showing all ${nextCount} images`,
+          duration: 3000,
+        });
+      }
+    }
+  }, [visibleCount, sortedImages.length]);
+
+  // Set up the intersection observer for infinite scrolling
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    const options = {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1
+    };
+
+    observerRef.current = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && visibleCount < sortedImages.length) {
+        loadMore();
+      }
+    }, options);
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadMore, visibleCount, sortedImages.length]);
 
   // Calculate the number of columns based on card size
   const getGridColumnsClass = () => {
@@ -76,6 +136,7 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
   }
 
   const handleImageClick = (index: number) => {
+    // Convert the visible index to the actual index in the sortedImages array
     setSelectedImageIndex(index);
   };
 
@@ -106,87 +167,95 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
 
   const renderGridView = () => (
     <div className={`grid ${getGridColumnsClass()} gap-4`}>
-      {sortedImages.map((image, index) => (
-        <Card 
-          key={image.id} 
-          className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => handleImageClick(index)}
-          style={{ 
-            // Apply the card size to control the overall card size
-            maxWidth: `${cardSize * 1.2}px`,
-            width: '100%'
-          }}
-        >
-          <div 
-            className="relative overflow-hidden bg-muted" 
-            style={{ height: `${getImageHeight()}px` }}
+      {visibleImages.map((image, index) => {
+        const overallIndex = index; // Index in the original sorted array
+        return (
+          <Card 
+            key={image.id} 
+            className="overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => handleImageClick(overallIndex)}
+            style={{ 
+              // Apply the card size to control the overall card size
+              maxWidth: `${cardSize * 1.2}px`,
+              width: '100%'
+            }}
           >
-            <div className="h-full w-full flex items-center justify-center">
-              <img 
-                src={image.url} 
-                alt={image.name}
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-          </div>
-          
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-lg font-medium">Rank #{index + 1}</span>
-              <span className="text-sm px-2 py-1 bg-muted rounded-full">
-                {Math.round(image.rating)} ELO
-              </span>
+            <div 
+              className="relative overflow-hidden bg-muted" 
+              style={{ height: `${getImageHeight()}px` }}
+            >
+              <div className="h-full w-full flex items-center justify-center">
+                <img 
+                  src={image.url} 
+                  alt={image.name}
+                  className="max-h-full max-w-full object-contain"
+                  loading="lazy" // Use lazy loading for better performance
+                />
+              </div>
             </div>
             
-            <p className="text-sm text-muted-foreground truncate" title={image.name}>
-              {image.name}
-            </p>
-            
-            <p className="text-xs text-muted-foreground mt-1">
-              {image.matches} match{image.matches !== 1 ? 'es' : ''}
-            </p>
-          </div>
-        </Card>
-      ))}
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-lg font-medium">Rank #{overallIndex + 1}</span>
+                <span className="text-sm px-2 py-1 bg-muted rounded-full">
+                  {Math.round(image.rating)} ELO
+                </span>
+              </div>
+              
+              <p className="text-sm text-muted-foreground truncate" title={image.name}>
+                {image.name}
+              </p>
+              
+              <p className="text-xs text-muted-foreground mt-1">
+                {image.matches} match{image.matches !== 1 ? 'es' : ''}
+              </p>
+            </div>
+          </Card>
+        );
+      })}
     </div>
   );
 
   const renderListView = () => (
     <div className="space-y-2">
-      {sortedImages.map((image, index) => (
-        <Card 
-          key={image.id} 
-          className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => handleImageClick(index)}
-        >
-          <div className="flex items-center p-2">
-            <div className="flex-shrink-0 mr-4 font-bold text-xl w-10 text-center">
-              {index + 1}
+      {visibleImages.map((image, index) => {
+        const overallIndex = index; // Index in the original sorted array
+        return (
+          <Card 
+            key={image.id} 
+            className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => handleImageClick(overallIndex)}
+          >
+            <div className="flex items-center p-2">
+              <div className="flex-shrink-0 mr-4 font-bold text-xl w-10 text-center">
+                {overallIndex + 1}
+              </div>
+              
+              <div className="h-16 w-16 flex-shrink-0 bg-muted overflow-hidden flex items-center justify-center">
+                <img 
+                  src={image.url} 
+                  alt={image.name}
+                  className="max-h-full max-w-full object-contain"
+                  loading="lazy" // Use lazy loading for better performance
+                />
+              </div>
+              
+              <div className="flex-grow px-4">
+                <p className="truncate" title={image.name}>
+                  {image.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {image.matches} comparisons
+                </p>
+              </div>
+              
+              <div className="flex-shrink-0 bg-muted px-3 py-1 rounded-full">
+                {Math.round(image.rating)} ELO
+              </div>
             </div>
-            
-            <div className="h-16 w-16 flex-shrink-0 bg-muted overflow-hidden flex items-center justify-center">
-              <img 
-                src={image.url} 
-                alt={image.name}
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-            
-            <div className="flex-grow px-4">
-              <p className="truncate" title={image.name}>
-                {image.name}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {image.matches} comparisons
-              </p>
-            </div>
-            
-            <div className="flex-shrink-0 bg-muted px-3 py-1 rounded-full">
-              {Math.round(image.rating)} ELO
-            </div>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 
@@ -194,6 +263,12 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-2xl font-bold">Image Rankings</h2>
+        
+        {visibleCount < sortedImages.length && (
+          <span className="text-sm text-muted-foreground">
+            Showing {visibleCount} of {sortedImages.length} images
+          </span>
+        )}
       </div>
       
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -254,7 +329,21 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
         </ToggleGroup>
       </div>
       
-      {viewMode === "grid" ? renderGridView() : renderListView()}
+      <ScrollArea className="h-[calc(100vh-220px)]">
+        {viewMode === "grid" ? renderGridView() : renderListView()}
+        
+        {/* Invisible element for intersection observer */}
+        {visibleCount < sortedImages.length && (
+          <div 
+            ref={loadMoreRef} 
+            className="w-full h-10 flex items-center justify-center py-8"
+          >
+            <div className="animate-pulse text-muted-foreground text-sm">
+              Loading more images...
+            </div>
+          </div>
+        )}
+      </ScrollArea>
 
       {/* Fullscreen Image Preview Dialog */}
       <Dialog open={selectedImage !== null} onOpenChange={(open) => !open && setSelectedImageIndex(null)}>
