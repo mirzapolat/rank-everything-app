@@ -17,7 +17,7 @@ import ResetDialog from "@/components/ResetDialog";
 
 const Index = () => {
   const [images, setImages] = useState<ImageItem[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("upload");
+  const [activeTab, setActiveTab] = useState<string>("home");
   const [resetDialogOpen, setResetDialogOpen] = useState<boolean>(false);
   const [importLoading, setImportLoading] = useState<boolean>(false);
 
@@ -25,20 +25,10 @@ const Index = () => {
     // Load saved images from localStorage on component mount
     const savedImages = getImagesFromLocalStorage();
     setImages(savedImages);
-    
-    // If there are images, default to the compare tab
-    if (savedImages.length >= 2) {
-      setActiveTab("compare");
-    }
   }, []);
 
   const handleImagesAdded = (updatedImages: ImageItem[]) => {
     setImages(updatedImages);
-    
-    // Automatically switch to compare tab if we now have enough images
-    if (updatedImages.length >= 2) {
-      setActiveTab("compare");
-    }
   };
 
   const handleRatingsUpdated = (updatedImages: ImageItem[]) => {
@@ -48,7 +38,6 @@ const Index = () => {
   const handleReset = () => {
     resetAllData();
     setImages([]);
-    setActiveTab("upload");
     setResetDialogOpen(false);
     toast.success("All images and rankings have been reset");
   };
@@ -82,10 +71,6 @@ const Index = () => {
           const importedImages = await importDataFromFile(target.files[0]);
           setImages(importedImages);
           toast.success("Data imported successfully");
-          
-          if (importedImages.length >= 2) {
-            setActiveTab("compare");
-          }
         } catch (error) {
           toast.error("Failed to import data");
           console.error("Import error:", error);
@@ -109,7 +94,7 @@ const Index = () => {
       <main className="container max-w-6xl mx-auto px-4 pb-16">
         {/* Tab content */}
         <div className="mt-8">
-          {activeTab === "upload" && (
+          {activeTab === "home" && (
             <div className="space-y-8">
               <div className="flex flex-col gap-4 md:flex-row md:justify-between">
                 <Button 
@@ -131,31 +116,19 @@ const Index = () => {
                 </Button>
               </div>
               
-              <ImageUploader onImagesAdded={handleImagesAdded} />
+              {/* Only show uploader if there are no images or less than 2 */}
+              {images.length < 2 && (
+                <ImageUploader onImagesAdded={handleImagesAdded} />
+              )}
               
-              {images.length > 0 && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-center">
-                    {images.length} Image{images.length !== 1 ? 's' : ''} Uploaded
-                  </h2>
-                  <div className="flex justify-center">
-                    <Button 
-                      onClick={() => setActiveTab("compare")}
-                      className="bg-teal hover:bg-teal-dark transition-colors"
-                    >
-                      Start Comparing
-                    </Button>
-                  </div>
-                </div>
+              {/* Always show comparison arena on home tab if we have enough images */}
+              {images.length >= 2 && (
+                <ComparisonArena 
+                  images={images} 
+                  onRatingsUpdated={handleRatingsUpdated} 
+                />
               )}
             </div>
-          )}
-          
-          {activeTab === "compare" && (
-            <ComparisonArena 
-              images={images} 
-              onRatingsUpdated={handleRatingsUpdated} 
-            />
           )}
           
           {activeTab === "rankings" && (

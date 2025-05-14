@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageItem } from "@/types/image";
@@ -21,25 +21,80 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalComparisons, setTotalComparisons] = useState<number>(0);
   const [preloadedImages, setPreloadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Initial selection and preload of images
+  // Preload all images initially and when images change
   useEffect(() => {
     if (images.length >= 2) {
-      // Preload all images
-      const imageMap = new Map<string, HTMLImageElement>();
+      const preloadImages = async () => {
+        const imageMap = new Map<string, HTMLImageElement>();
+        
+        // Create an array of promises for preloading
+        const preloadPromises = images.map(img => {
+          if (img.url) {
+            return new Promise<void>((resolve) => {
+              const imgElement = new Image();
+              imgElement.onload = () => {
+                imageMap.set(img.id, imgElement);
+                resolve();
+              };
+              imgElement.onerror = () => {
+                // Handle error but still resolve to avoid blocking
+                console.error(`Failed to load image: ${img.url}`);
+                resolve();
+              };
+              imgElement.src = img.url;
+            });
+          }
+          return Promise.resolve();
+        });
+        
+        // Wait for a batch of images to preload before setting state
+        // This improves perceived performance for large sets
+        await Promise.all(preloadPromises);
+        
+        setPreloadedImages(imageMap);
+      };
       
-      images.forEach(img => {
-        if (img.url) {
-          const imgElement = new Image();
-          imgElement.src = img.url;
-          imageMap.set(img.id, imgElement);
-        }
-      });
-      
-      setPreloadedImages(imageMap);
-      selectRandomPair(images);
+      preloadImages();
     }
   }, [images]);
+  
+  // Select random pair, efficiently using preloaded images
+  const selectRandomPair = useCallback((imagesList: ImageItem[]) => {
+    if (imagesList.length < 2) {
+      setImageA(null);
+      setImageB(null);
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Select two random, different images
+    let indexA = Math.floor(Math.random() * imagesList.length);
+    let indexB;
+    
+    do {
+      indexB = Math.floor(Math.random() * imagesList.length);
+    } while (indexB === indexA);
+    
+    // Set both images simultaneously
+    Promise.all([
+      imagesList[indexA],
+      imagesList[indexB]
+    ]).then(([imgA, imgB]) => {
+      setImageA(imgA);
+      setImageB(imgB);
+      setIsLoading(false);
+    });
+  }, []);
+
+  // Initial selection of images
+  useEffect(() => {
+    if (images.length >= 2) {
+      selectRandomPair(images);
+    }
+  }, [images, selectRandomPair]);
 
   // Add keyboard event listener
   useEffect(() => {
@@ -60,31 +115,8 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     };
   }, [imageA, imageB, isLoading]);
 
-  const selectRandomPair = (imagesList: ImageItem[]) => {
-    if (imagesList.length < 2) {
-      setImageA(null);
-      setImageB(null);
-      return;
-    }
-
-    setIsLoading(true);
-    
-    // Select two random, different images
-    let indexA = Math.floor(Math.random() * imagesList.length);
-    let indexB;
-    
-    do {
-      indexB = Math.floor(Math.random() * imagesList.length);
-    } while (indexB === indexA);
-    
-    // Set the images without delay
-    setImageA(imagesList[indexA]);
-    setImageB(imagesList[indexB]);
-    setIsLoading(false);
-  };
-
   const handleSelection = (selected: "A" | "B") => {
-    if (!imageA || !imageB) return;
+    if (!imageA || !imageB || isLoading) return;
 
     const winner = selected === "A" ? imageA : imageB;
     const loser = selected === "A" ? imageB : imageA;
@@ -131,27 +163,16 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     // Update comparison count
     setTotalComparisons(prev => prev + 1);
     
-    // Select a new pair
+    // Immediate update to next pair
     selectRandomPair(updatedImages);
     
-    if (totalComparisons > 0 && totalComparisons % 10 === 0) {
+    if (totalComparisons > 0 && totalComparisons % 20 === 0) {
       toast.info(`You've completed ${totalComparisons} comparisons!`);
     }
   };
 
-  if (images.length < 2) {
-    return (
-      <Card className="p-6 text-center bg-muted/30">
-        <p className="mb-2">Please upload at least 2 images to begin comparing.</p>
-        <p className="text-sm text-muted-foreground">
-          Images will be shown here side-by-side for you to rank.
-        </p>
-      </Card>
-    );
-  }
-
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" ref={containerRef}>
       <div className="text-center mb-4">
         <h2 className="text-2xl font-bold">Which image do you prefer?</h2>
         <p className="text-muted-foreground">Click on the image you like better or press key <strong>1</strong> or <strong>2</strong></p>
@@ -162,19 +183,20 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
         <Card 
           className={`overflow-hidden border-2 transition-colors
             hover:border-teal cursor-pointer
-            ${!imageA ? 'h-48 flex items-center justify-center' : ''}`
+            ${!imageA || isLoading ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageA && handleSelection("A")}
         >
           <div className="relative p-2 text-center font-bold text-muted-foreground">
             1
           </div>
-          {imageA ? (
-            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center">
+          {imageA && !isLoading ? (
+            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-muted/20">
               <img 
                 src={imageA.url} 
                 alt={imageA.name}
                 className="max-h-full max-w-full object-contain"
+                draggable={false}
               />
             </div>
           ) : (
@@ -186,19 +208,20 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
         <Card 
           className={`overflow-hidden border-2 transition-colors
             hover:border-teal cursor-pointer
-            ${!imageB ? 'h-48 flex items-center justify-center' : ''}`
+            ${!imageB || isLoading ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageB && handleSelection("B")}
         >
           <div className="relative p-2 text-center font-bold text-muted-foreground">
             2
           </div>
-          {imageB ? (
-            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center">
+          {imageB && !isLoading ? (
+            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-muted/20">
               <img 
                 src={imageB.url} 
                 alt={imageB.name}
                 className="max-h-full max-w-full object-contain"
+                draggable={false}
               />
             </div>
           ) : (
