@@ -33,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, imageCount }) =
         
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-2">
-            Rank Everything App
+            Rank Everything
           </h1>
           <p className="text-center text-muted-foreground mb-6">
             Compare images head-to-head and rank them using the Elo rating system

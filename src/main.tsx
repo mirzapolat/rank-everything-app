@@ -4,6 +4,6 @@ import App from './App.tsx'
 import './index.css'
 
 // Set document title
-document.title = "Rank Everything App";
+document.title = "Rank Everything";
 
 createRoot(document.getElementById("root")!).render(<App />);
