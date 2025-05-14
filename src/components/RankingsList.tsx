@@ -375,8 +375,9 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
 
       {/* Fullscreen Image Preview Dialog */}
       <Dialog open={selectedImage !== null} onOpenChange={(open) => !open && setSelectedImageIndex(null)}>
-        <DialogContent className="max-w-[90vw] w-auto max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] p-0 overflow-hidden">
           <div className="relative bg-black flex flex-col h-full">
+            {/* Top controls - Download and Close buttons */}
             <div className="absolute right-2 top-2 z-10 flex gap-2">
               {selectedImage && (
                 <Button 
@@ -401,42 +402,49 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
               </DialogClose>
             </div>
             
-            {/* Navigation buttons moved to the bottom */}
-            <div className="flex-1 flex items-center justify-center">
-              {selectedImage && (
-                <img
-                  src={selectedImage.url}
-                  alt={selectedImage.name}
-                  className="max-h-full max-w-full object-contain"
-                />
-              )}
-            </div>
-            
-            {/* Navigation controls now positioned at bottom */}
-            <div className="flex justify-center items-center gap-4 p-4 bg-black/50">
+            {/* Navigation buttons positioned at far left and right */}
+            <div className="flex-1 flex items-center justify-center relative">
+              {/* Left navigation button */}
               <Button 
                 variant="outline" 
                 onClick={handlePrevious}
-                className="bg-black/50 hover:bg-black/70 text-white border-none"
+                className="absolute left-2 z-10 bg-black/50 hover:bg-black/70 text-white border-none h-12 w-12 rounded-full flex items-center justify-center"
+                size="icon"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous
+                <ArrowLeft className="h-6 w-6" />
+                <span className="sr-only">Previous</span>
               </Button>
               
+              {/* Image container - making image fit within the viewport */}
+              {selectedImage && (
+                <div className="w-full h-full flex items-center justify-center px-16">
+                  <img
+                    src={selectedImage.url}
+                    alt={selectedImage.name}
+                    className="max-h-[85vh] max-w-[85vw] object-contain"
+                  />
+                </div>
+              )}
+              
+              {/* Right navigation button */}
+              <Button 
+                variant="outline" 
+                onClick={handleNext}
+                className="absolute right-2 z-10 bg-black/50 hover:bg-black/70 text-white border-none h-12 w-12 rounded-full flex items-center justify-center"
+                size="icon"
+              >
+                <ArrowRight className="h-6 w-6" />
+                <span className="sr-only">Next</span>
+              </Button>
+            </div>
+            
+            {/* Image counter at the bottom */}
+            <div className="flex justify-center items-center p-2 bg-black/50">
               {selectedImageIndex !== null && (
                 <span className="text-white text-sm">
                   {selectedImageIndex + 1} of {sortedImages.length}
                 </span>
               )}
-              
-              <Button 
-                variant="outline" 
-                onClick={handleNext}
-                className="bg-black/50 hover:bg-black/70 text-white border-none"
-              >
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
             </div>
           </div>
         </DialogContent>
