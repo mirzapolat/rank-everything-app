@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageItem } from "@/types/image";
@@ -168,17 +167,6 @@ const Index = () => {
           
           {activeTab === "rankings" && (
             <div className="space-y-6">
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleExport}
-                  variant="outline"
-                  className="w-full md:w-auto"
-                  disabled={images.length === 0}
-                >
-                  Export Rankings
-                </Button>
-              </div>
-              
               <RankingsList images={images} />
             </div>
           )}

@@ -9,8 +9,8 @@ import {
   DialogContent,
   DialogClose
 } from "@/components/ui/dialog";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
+import ExportRankingsButton from "./ExportRankingsButton";
 
 interface RankingsListProps {
   images: ImageItem[];
@@ -133,6 +133,18 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
             <List className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
+      </div>
+      
+      <div className="flex flex-col gap-4 md:flex-row md:justify-between">
+        <ExportRankingsButton images={images} />
+        <Button
+          onClick={() => {}}
+          variant="outline"
+          className="w-full md:w-auto"
+          disabled={images.length === 0}
+        >
+          Export Rankings
+        </Button>
       </div>
       
       {viewMode === "grid" ? renderGridView() : renderListView()}
