@@ -1,9 +1,18 @@
 
 /// <reference types="vite/client" />
 
-declare namespace JSX {
-  interface InputHTMLAttributes extends React.HTMLAttributes<HTMLInputElement> {
+declare namespace React {
+  interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
     directory?: string;
     webkitdirectory?: string;
+  }
+}
+
+declare module JSX {
+  interface IntrinsicElements {
+    input: React.DetailedHTMLProps<
+      React.InputHTMLAttributes<HTMLInputElement>,
+      HTMLInputElement
+    >;
   }
 }
