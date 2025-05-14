@@ -19,20 +19,20 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesAdded }) => {
     if (files && files.length > 0) {
       const filesArray = Array.from(files);
       
-      // Check if files are images
-      const invalidFiles = filesArray.filter(
-        file => !file.type.startsWith("image/")
+      // Filter to only include image files
+      const imageFiles = filesArray.filter(
+        file => file.type.startsWith("image/")
       );
       
-      if (invalidFiles.length > 0) {
-        toast.error("Some files are not images. Only image files are allowed.");
+      if (imageFiles.length === 0) {
+        toast.error("No image files were found. Please select images.");
         return;
       }
       
-      const updatedImages = addNewImages(filesArray);
+      const updatedImages = addNewImages(imageFiles);
       onImagesAdded(updatedImages);
       
-      toast.success(`Added ${filesArray.length} images successfully!`);
+      toast.success(`Added ${imageFiles.length} images successfully!`);
       
       // Reset the inputs
       if (fileInputRef.current) fileInputRef.current.value = "";
