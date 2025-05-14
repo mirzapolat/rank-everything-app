@@ -27,6 +27,25 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     }
   }, [images]);
 
+  // Add keyboard event listener
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (isLoading || !imageA || !imageB) return;
+
+      if (event.key === "1") {
+        handleSelection("A");
+      } else if (event.key === "2") {
+        handleSelection("B");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [imageA, imageB, isLoading]);
+
   const selectRandomPair = (imagesList: ImageItem[]) => {
     if (imagesList.length < 2) {
       setImageA(null);
@@ -44,12 +63,10 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       indexB = Math.floor(Math.random() * imagesList.length);
     } while (indexB === indexA);
     
-    // Allow time for images to load
-    setTimeout(() => {
-      setImageA(imagesList[indexA]);
-      setImageB(imagesList[indexB]);
-      setIsLoading(false);
-    }, 300);
+    // Load images immediately without animation delay
+    setImageA(imagesList[indexA]);
+    setImageB(imagesList[indexB]);
+    setIsLoading(false);
   };
 
   const handleSelection = (selected: "A" | "B") => {
@@ -123,18 +140,21 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     <div className="flex flex-col">
       <div className="text-center mb-4">
         <h2 className="text-2xl font-bold">Which image do you prefer?</h2>
-        <p className="text-muted-foreground">Click on the image you like better</p>
+        <p className="text-muted-foreground">Click on the image you like better or press key <strong>1</strong> or <strong>2</strong></p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         {/* Image A */}
         <Card 
-          className={`overflow-hidden border-2 transition-all 
-            ${isLoading ? 'opacity-0' : 'opacity-100 hover:border-teal cursor-pointer animate-fade-in'}
+          className={`overflow-hidden border-2 transition-colors
+            ${isLoading ? 'opacity-0' : 'opacity-100 hover:border-teal cursor-pointer'}
             ${!imageA ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageA && handleSelection("A")}
         >
+          <div className="relative p-2 text-center font-bold text-muted-foreground">
+            1
+          </div>
           {imageA ? (
             <div className="relative h-[300px] md:h-[400px] w-full">
               <img 
@@ -150,12 +170,15 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
         
         {/* Image B */}
         <Card 
-          className={`overflow-hidden border-2 transition-all 
-            ${isLoading ? 'opacity-0' : 'opacity-100 hover:border-teal cursor-pointer animate-fade-in'}
+          className={`overflow-hidden border-2 transition-colors
+            ${isLoading ? 'opacity-0' : 'opacity-100 hover:border-teal cursor-pointer'}
             ${!imageB ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageB && handleSelection("B")}
         >
+          <div className="relative p-2 text-center font-bold text-muted-foreground">
+            2
+          </div>
           {imageB ? (
             <div className="relative h-[300px] md:h-[400px] w-full">
               <img 

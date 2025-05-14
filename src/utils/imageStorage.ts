@@ -36,6 +36,7 @@ export const addNewImages = (files: File[]): ImageItem[] => {
     id: crypto.randomUUID(),
     name: file.name,
     url: URL.createObjectURL(file),
+    filePath: file.name, // Store the file name for future reference
     rating: DEFAULT_RATING,
     matches: 0
   }));
@@ -61,7 +62,7 @@ export const exportDataToFile = (): void => {
   const exportData = {
     images: images.map(image => ({
       ...image,
-      // Remove the temporary object URL as it won't be valid in future sessions
+      // Store the file path but remove the temporary object URL
       url: null
     })),
     results
@@ -102,15 +103,13 @@ export const importDataFromFile = async (file: File): Promise<ImageItem[]> => {
         }
         
         // Process the imported images
+        // We'll use the filePath stored in the export to try to match with uploaded files
         const importedImages: ImageItem[] = importedData.images.map((img: any) => {
-          // Create new object URLs for the images if they're being imported from files
-          if (img.name && file.name.includes(img.name)) {
-            return {
-              ...img,
-              url: URL.createObjectURL(file)
-            };
-          }
-          return img;
+          return {
+            ...img,
+            // Add a placeholder URL that will be replaced when matching files are uploaded
+            url: img.url || "#"
+          };
         });
         
         // Save imported data to localStorage
@@ -133,4 +132,35 @@ export const importDataFromFile = async (file: File): Promise<ImageItem[]> => {
     
     reader.readAsText(file);
   });
+};
+
+// Update the image type to include filePath
+export const updateImagesWithFiles = (images: ImageItem[], files: File[]): ImageItem[] => {
+  // Create a map of filename -> File for quick lookups
+  const fileMap = new Map<string, File>();
+  files.forEach(file => {
+    fileMap.set(file.name, file);
+  });
+  
+  // Update images with matching files
+  const updatedImages = images.map(image => {
+    // Try to find a matching file by name
+    const matchingFile = image.filePath && fileMap.get(image.filePath);
+    
+    if (matchingFile) {
+      // If we found a match, update the URL
+      return {
+        ...image,
+        url: URL.createObjectURL(matchingFile)
+      };
+    }
+    
+    // No match found, return the image as-is
+    return image;
+  });
+  
+  // Save the updated images
+  saveImagesToLocalStorage(updatedImages);
+  
+  return updatedImages;
 };
