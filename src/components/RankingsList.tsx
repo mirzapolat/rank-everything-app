@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { ImageItem } from "@/types/image";
 import { Card } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { List, Grid2X2, Download, Minimize, ArrowLeft, ArrowRight, FileZip } from "lucide-react";
+import { List, Grid2X2, Download, Minimize, ArrowLeft, ArrowRight, FileArchive } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
