@@ -25,6 +25,14 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
 
   const selectedImage = selectedImageIndex !== null ? sortedImages[selectedImageIndex] : null;
 
+  // Calculate the number of columns based on card size
+  const getGridColumnsClass = () => {
+    if (cardSize > 350) return "grid-cols-1 md:grid-cols-2 lg:grid-cols-2";
+    if (cardSize > 250) return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+    if (cardSize > 200) return "grid-cols-1 md:grid-cols-3 lg:grid-cols-4";
+    return "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"; // For smallest cards
+  };
+
   useEffect(() => {
     // Handle keyboard navigation in fullscreen mode
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -97,7 +105,7 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
   };
 
   const renderGridView = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className={`grid ${getGridColumnsClass()} gap-4`}>
       {sortedImages.map((image, index) => (
         <Card 
           key={image.id} 
@@ -298,4 +306,3 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
 };
 
 export default RankingsList;
-
