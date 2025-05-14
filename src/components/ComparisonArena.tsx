@@ -20,9 +20,23 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
   const [imageB, setImageB] = useState<ImageItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalComparisons, setTotalComparisons] = useState<number>(0);
+  const [preloadedImages, setPreloadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
 
+  // Initial selection and preload of images
   useEffect(() => {
     if (images.length >= 2) {
+      // Preload all images
+      const imageMap = new Map<string, HTMLImageElement>();
+      
+      images.forEach(img => {
+        if (img.url) {
+          const imgElement = new Image();
+          imgElement.src = img.url;
+          imageMap.set(img.id, imgElement);
+        }
+      });
+      
+      setPreloadedImages(imageMap);
       selectRandomPair(images);
     }
   }, [images]);
@@ -63,7 +77,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       indexB = Math.floor(Math.random() * imagesList.length);
     } while (indexB === indexA);
     
-    // Load images immediately without animation delay
+    // Set the images without delay
     setImageA(imagesList[indexA]);
     setImageB(imagesList[indexB]);
     setIsLoading(false);
@@ -147,7 +161,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
         {/* Image A */}
         <Card 
           className={`overflow-hidden border-2 transition-colors
-            ${isLoading ? 'opacity-0' : 'opacity-100 hover:border-teal cursor-pointer'}
+            hover:border-teal cursor-pointer
             ${!imageA ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageA && handleSelection("A")}
@@ -156,11 +170,11 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
             1
           </div>
           {imageA ? (
-            <div className="relative h-[300px] md:h-[400px] w-full">
+            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center">
               <img 
                 src={imageA.url} 
                 alt={imageA.name}
-                className="absolute inset-0 w-full h-full object-contain"
+                className="max-h-full max-w-full object-contain"
               />
             </div>
           ) : (
@@ -171,7 +185,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
         {/* Image B */}
         <Card 
           className={`overflow-hidden border-2 transition-colors
-            ${isLoading ? 'opacity-0' : 'opacity-100 hover:border-teal cursor-pointer'}
+            hover:border-teal cursor-pointer
             ${!imageB ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageB && handleSelection("B")}
@@ -180,11 +194,11 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
             2
           </div>
           {imageB ? (
-            <div className="relative h-[300px] md:h-[400px] w-full">
+            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center">
               <img 
                 src={imageB.url} 
                 alt={imageB.name}
-                className="absolute inset-0 w-full h-full object-contain"
+                className="max-h-full max-w-full object-contain"
               />
             </div>
           ) : (
