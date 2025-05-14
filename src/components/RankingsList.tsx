@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { ImageItem } from "@/types/image";
 import { Card } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { List, Grid2X2, Download, Maximize2, ArrowLeft, ArrowRight } from "lucide-react";
+import { List, Grid2X2, Download, Minimize, ArrowLeft, ArrowRight } from "lucide-react";
 import { 
   Dialog,
   DialogContent,
@@ -251,7 +250,7 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
                   variant="outline"
                   className="bg-black/50 hover:bg-black/70 text-white border-none"
                 >
-                  <Maximize2 className="h-4 w-4" />
+                  <Minimize className="h-4 w-4" />
                   <span className="sr-only">Close</span>
                 </Button>
               </DialogClose>
