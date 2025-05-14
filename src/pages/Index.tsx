@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageItem } from "@/types/image";
@@ -21,11 +22,24 @@ const Index = () => {
   const [resetDialogOpen, setResetDialogOpen] = useState<boolean>(false);
   const [importLoading, setImportLoading] = useState<boolean>(false);
   const [needsImageFiles, setNeedsImageFiles] = useState<boolean>(false);
+  const [totalComparisons, setTotalComparisons] = useState<number>(0);
+  const [imagesImported, setImagesImported] = useState<boolean>(false);
 
   useEffect(() => {
     // Load saved images from localStorage on component mount
     const savedImages = getImagesFromLocalStorage();
     setImages(savedImages);
+    
+    // Calculate total comparisons from images
+    if (savedImages.length > 0) {
+      // If we have images and at least one has matches, consider as imported
+      const hasMatches = savedImages.some(img => img.matches > 0);
+      setImagesImported(hasMatches);
+      
+      // Sum all matches and divide by 2 since each comparison affects 2 images
+      const totalMatches = savedImages.reduce((sum, img) => sum + img.matches, 0);
+      setTotalComparisons(totalMatches / 2);
+    }
   }, []);
 
   const handleImagesAdded = (updatedImages: ImageItem[]) => {
@@ -34,11 +48,16 @@ const Index = () => {
 
   const handleRatingsUpdated = (updatedImages: ImageItem[]) => {
     setImages(updatedImages);
+    // Update total comparisons when ratings change
+    const totalMatches = updatedImages.reduce((sum, img) => sum + img.matches, 0);
+    setTotalComparisons(totalMatches / 2);
   };
 
   const handleReset = () => {
     resetAllData();
     setImages([]);
+    setTotalComparisons(0);
+    setImagesImported(false);
     setResetDialogOpen(false);
     toast.success("All images and rankings have been reset");
   };
@@ -71,6 +90,15 @@ const Index = () => {
         try {
           const importedImages = await importDataFromFile(target.files[0]);
           setImages(importedImages);
+          
+          // Calculate total comparisons from imported images
+          const totalMatches = importedImages.reduce((sum, img) => sum + img.matches, 0);
+          setTotalComparisons(totalMatches / 2);
+          
+          // Mark as imported if we have images with matches
+          const hasMatches = importedImages.some(img => img.matches > 0);
+          setImagesImported(hasMatches);
+          
           toast.success("Data imported successfully");
           toast.info("Please select your image files now to match with the imported data", {
             duration: 8000,
@@ -107,6 +135,11 @@ const Index = () => {
     fileInput.click();
   };
 
+  useEffect(() => {
+    // Update document title
+    document.title = "Rank Everything App";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header 
@@ -120,15 +153,25 @@ const Index = () => {
         <div className="mt-8">
           {activeTab === "home" && (
             <div className="space-y-8">
-              <div className="flex flex-col gap-4 md:flex-row md:justify-between">
-                <Button 
-                  onClick={handleExport}
-                  variant="outline" 
-                  className="w-full md:w-auto"
-                  disabled={images.length === 0}
-                >
-                  Export Progress
-                </Button>
+              <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+                {/* Export button - only show when images imported */}
+                {imagesImported && (
+                  <Button 
+                    onClick={handleExport}
+                    variant="outline" 
+                    className="w-full md:w-auto"
+                    disabled={images.length === 0}
+                  >
+                    Export Progress
+                  </Button>
+                )}
+                
+                {/* Total comparisons counter - show in middle */}
+                {totalComparisons > 0 && (
+                  <div className="text-center font-medium text-lg">
+                    {Math.round(totalComparisons)} comparison{totalComparisons !== 1 ? 's' : ''} completed
+                  </div>
+                )}
                 
                 <Button 
                   onClick={handleImportClick}
@@ -159,7 +202,8 @@ const Index = () => {
               {images.length >= 2 && (
                 <ComparisonArena 
                   images={images} 
-                  onRatingsUpdated={handleRatingsUpdated} 
+                  onRatingsUpdated={handleRatingsUpdated}
+                  onReset={() => setResetDialogOpen(true)} 
                 />
               )}
             </div>
@@ -172,18 +216,7 @@ const Index = () => {
           )}
         </div>
         
-        {/* Reset button */}
-        {images.length > 0 && (
-          <div className="mt-12 text-center">
-            <Button
-              variant="outline"
-              onClick={() => setResetDialogOpen(true)}
-              className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-            >
-              Reset All Data
-            </Button>
-          </div>
-        )}
+        {/* Remove the Reset button from here since we moved it to ComparisonArena */}
       </main>
       
       <ResetDialog

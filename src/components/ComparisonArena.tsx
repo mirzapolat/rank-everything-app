@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,11 +9,13 @@ import { toast } from "sonner";
 interface ComparisonArenaProps {
   images: ImageItem[];
   onRatingsUpdated: (updatedImages: ImageItem[]) => void;
+  onReset: () => void;
 }
 
 const ComparisonArena: React.FC<ComparisonArenaProps> = ({ 
   images, 
-  onRatingsUpdated 
+  onRatingsUpdated,
+  onReset 
 }) => {
   const [imageA, setImageA] = useState<ImageItem | null>(null);
   const [imageB, setImageB] = useState<ImageItem | null>(null);
@@ -161,14 +162,21 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     onRatingsUpdated(updatedImages);
     
     // Update comparison count
-    setTotalComparisons(prev => prev + 1);
+    const newTotal = totalComparisons + 1;
+    setTotalComparisons(newTotal);
+    
+    // Check for milestones
+    const milestones = [10, 20, 50, 100, 200, 500, 1000];
+    const milestone = milestones.find(m => newTotal === m);
+    if (milestone) {
+      toast.success(`Milestone reached: ${milestone} comparisons completed! 🎉`);
+    } else if (newTotal % 50 === 0 && newTotal > 0) {
+      // Show notification every 50 comparisons for higher numbers
+      toast.info(`You've completed ${newTotal} comparisons!`);
+    }
     
     // Immediate update to next pair
     selectRandomPair(updatedImages);
-    
-    if (totalComparisons > 0 && totalComparisons % 20 === 0) {
-      toast.info(`You've completed ${totalComparisons} comparisons!`);
-    }
   };
 
   return (
@@ -230,7 +238,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
         </Card>
       </div>
       
-      <div className="mt-6 text-center">
+      <div className="mt-6 text-center flex justify-center gap-4">
         <Button 
           onClick={() => selectRandomPair(images)}
           variant="outline"
@@ -238,6 +246,14 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
           className="text-sm"
         >
           Skip this pair
+        </Button>
+        
+        <Button
+          onClick={onReset}
+          variant="outline"
+          className="text-sm text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+        >
+          Reset All Data
         </Button>
       </div>
       
