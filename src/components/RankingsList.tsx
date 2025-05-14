@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ImageItem } from "@/types/image";
 import { Card } from "@/components/ui/card";
@@ -225,7 +224,7 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
             
             <div className="p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-lg font-medium">Rank #{overallIndex + 1}</span>
+                <span className="text-lg font-medium">{overallIndex + 1}</span>
                 <span className="text-sm px-2 py-1 bg-muted rounded-full">
                   {Math.round(image.rating)} ELO
                 </span>
