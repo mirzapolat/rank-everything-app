@@ -6,7 +6,8 @@ import {
   getImagesFromLocalStorage, 
   resetAllData, 
   exportDataToFile, 
-  importDataFromFile 
+  importDataFromFile,
+  updateImagesWithFiles
 } from "@/utils/imageStorage";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -20,6 +21,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<string>("home");
   const [resetDialogOpen, setResetDialogOpen] = useState<boolean>(false);
   const [importLoading, setImportLoading] = useState<boolean>(false);
+  const [needsImageFiles, setNeedsImageFiles] = useState<boolean>(false);
 
   useEffect(() => {
     // Load saved images from localStorage on component mount
@@ -71,12 +73,35 @@ const Index = () => {
           const importedImages = await importDataFromFile(target.files[0]);
           setImages(importedImages);
           toast.success("Data imported successfully");
+          toast.info("Please select your image files now to match with the imported data", {
+            duration: 8000,
+          });
+          setNeedsImageFiles(true);
         } catch (error) {
           toast.error("Failed to import data");
           console.error("Import error:", error);
         } finally {
           setImportLoading(false);
         }
+      }
+    };
+    
+    fileInput.click();
+  };
+
+  const handleSelectImageFiles = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true;
+    
+    fileInput.onchange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        const updatedImages = updateImagesWithFiles(images, Array.from(target.files));
+        setImages(updatedImages);
+        setNeedsImageFiles(false);
+        toast.success(`Matched ${target.files.length} image files with imported data`);
       }
     };
     
@@ -116,8 +141,18 @@ const Index = () => {
                 </Button>
               </div>
               
+              {/* Show file selection prompt after importing */}
+              {needsImageFiles && (
+                <div className="p-4 border rounded-md bg-muted/30">
+                  <p className="mb-3">You've imported ranking data, but need to select the corresponding image files.</p>
+                  <Button onClick={handleSelectImageFiles}>
+                    Select Image Files
+                  </Button>
+                </div>
+              )}
+              
               {/* Only show uploader if there are no images or less than 2 */}
-              {images.length < 2 && (
+              {images.length < 2 && !needsImageFiles && (
                 <ImageUploader onImagesAdded={handleImagesAdded} />
               )}
               

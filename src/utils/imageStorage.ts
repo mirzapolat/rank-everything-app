@@ -1,3 +1,4 @@
+
 import { ImageItem, ComparisonResult } from "../types/image";
 
 const STORAGE_KEY_IMAGES = "elo-arena-images";
@@ -158,16 +159,19 @@ export const importDataFromFile = async (file: File): Promise<ImageItem[]> => {
           throw new Error("Invalid backup file format");
         }
         
-        // Process the imported images - more efficiently
+        // Process the imported images
         const importedImages: ImageItem[] = importedData.images.map((img: any) => {
           return {
-            ...img,
-            // Image URL will be handled by the file selection logic
-            url: img.url || (img.filePath ? img.filePath : "#")
+            id: img.id || crypto.randomUUID(),
+            name: img.name,
+            filePath: img.filePath || img.name,
+            url: "#placeholder", // Temporary placeholder URL to be updated later
+            rating: img.rating || DEFAULT_RATING,
+            matches: img.matches || 0
           };
         });
         
-        // Save imported data to localStorage
+        // Save imported data to localStorage immediately
         saveImagesToLocalStorage(importedImages);
         
         // Save comparison results if they exist
@@ -191,6 +195,8 @@ export const importDataFromFile = async (file: File): Promise<ImageItem[]> => {
 
 // Update the image type to include filePath with preloading optimization
 export const updateImagesWithFiles = (images: ImageItem[], files: File[]): ImageItem[] => {
+  console.log("Updating images with files:", images.length, files.length);
+  
   // Create a map of filename -> File for quick lookups
   const fileMap = new Map<string, File>();
   files.forEach(file => {
@@ -200,8 +206,9 @@ export const updateImagesWithFiles = (images: ImageItem[], files: File[]): Image
   // Update images with matching files - batching for performance
   const updatedImages = images.map(image => {
     // Try to find a matching file by name or path
-    const matchingFile = (image.filePath && fileMap.get(image.filePath)) || 
-                         fileMap.get(image.name);
+    const matchFile = image.filePath ? fileMap.get(image.filePath) : null;
+    const matchName = fileMap.get(image.name);
+    const matchingFile = matchFile || matchName;
     
     if (matchingFile) {
       // If we found a match, update the URL
@@ -209,6 +216,8 @@ export const updateImagesWithFiles = (images: ImageItem[], files: File[]): Image
         ...image,
         url: URL.createObjectURL(matchingFile)
       };
+    } else {
+      console.log("No matching file found for:", image.name, image.filePath);
     }
     
     // No match found, return the image as-is
