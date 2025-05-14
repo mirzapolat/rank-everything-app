@@ -26,9 +26,11 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [cardSize, setCardSize] = useState<number>(300); // Larger default size
   const [visibleCount, setVisibleCount] = useState<number>(ITEMS_PER_PAGE);
+  const [scrollHeight, setScrollHeight] = useState<string>("calc(100vh - 220px)");
   
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Sort images by rating (highest first)
   const sortedImages = [...images].sort((a, b) => b.rating - a.rating);
@@ -38,6 +40,33 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
   
   // Reference to the currently selected image
   const selectedImage = selectedImageIndex !== null ? sortedImages[selectedImageIndex] : null;
+
+  // Calculate available height for scroll area
+  useEffect(() => {
+    const updateScrollHeight = () => {
+      if (containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const topPosition = containerRect.top;
+        // Leave a small padding at the bottom (16px)
+        const newHeight = `calc(100vh - ${topPosition + 16}px)`;
+        setScrollHeight(newHeight);
+      }
+    };
+
+    // Initial calculation
+    updateScrollHeight();
+    
+    // Recalculate on window resize
+    window.addEventListener('resize', updateScrollHeight);
+    
+    // Add a small delay to ensure all elements have rendered
+    const timer = setTimeout(updateScrollHeight, 100);
+    
+    return () => {
+      window.removeEventListener('resize', updateScrollHeight);
+      clearTimeout(timer);
+    };
+  }, []);
 
   // Infinite scroll implementation
   const loadMore = useCallback(() => {
@@ -260,7 +289,7 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" ref={containerRef}>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className="text-2xl font-bold">Image Rankings</h2>
         
@@ -329,7 +358,7 @@ const RankingsList: React.FC<RankingsListProps> = ({ images }) => {
         </ToggleGroup>
       </div>
       
-      <ScrollArea className="h-[calc(100vh-220px)]">
+      <ScrollArea className="overflow-auto" style={{ height: scrollHeight }}>
         {viewMode === "grid" ? renderGridView() : renderListView()}
         
         {/* Invisible element for intersection observer */}
