@@ -2,7 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageItem } from "@/types/image";
-import { getImagesFromLocalStorage, resetAllData } from "@/utils/imageStorage";
+import { 
+  getImagesFromLocalStorage, 
+  resetAllData, 
+  exportDataToFile, 
+  importDataFromFile 
+} from "@/utils/imageStorage";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import ImageUploader from "@/components/ImageUploader";
@@ -14,6 +19,7 @@ const Index = () => {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>("upload");
   const [resetDialogOpen, setResetDialogOpen] = useState<boolean>(false);
+  const [importLoading, setImportLoading] = useState<boolean>(false);
 
   useEffect(() => {
     // Load saved images from localStorage on component mount
@@ -47,6 +53,51 @@ const Index = () => {
     toast.success("All images and rankings have been reset");
   };
 
+  const handleExport = () => {
+    if (images.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+    
+    try {
+      exportDataToFile();
+      toast.success("Data exported successfully");
+    } catch (error) {
+      toast.error("Failed to export data");
+      console.error("Export error:", error);
+    }
+  };
+
+  const handleImportClick = () => {
+    // Create a file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    
+    fileInput.onchange = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        setImportLoading(true);
+        try {
+          const importedImages = await importDataFromFile(target.files[0]);
+          setImages(importedImages);
+          toast.success("Data imported successfully");
+          
+          if (importedImages.length >= 2) {
+            setActiveTab("compare");
+          }
+        } catch (error) {
+          toast.error("Failed to import data");
+          console.error("Import error:", error);
+        } finally {
+          setImportLoading(false);
+        }
+      }
+    };
+    
+    fileInput.click();
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header 
@@ -60,6 +111,26 @@ const Index = () => {
         <div className="mt-8">
           {activeTab === "upload" && (
             <div className="space-y-8">
+              <div className="flex flex-col gap-4 md:flex-row md:justify-between">
+                <Button 
+                  onClick={handleExport}
+                  variant="outline" 
+                  className="w-full md:w-auto"
+                  disabled={images.length === 0}
+                >
+                  Export Progress
+                </Button>
+                
+                <Button 
+                  onClick={handleImportClick}
+                  variant="outline" 
+                  className="w-full md:w-auto"
+                  disabled={importLoading}
+                >
+                  {importLoading ? "Importing..." : "Import Progress"}
+                </Button>
+              </div>
+              
               <ImageUploader onImagesAdded={handleImagesAdded} />
               
               {images.length > 0 && (
@@ -88,7 +159,20 @@ const Index = () => {
           )}
           
           {activeTab === "rankings" && (
-            <RankingsList images={images} />
+            <div className="space-y-6">
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  className="w-full md:w-auto"
+                  disabled={images.length === 0}
+                >
+                  Export Rankings
+                </Button>
+              </div>
+              
+              <RankingsList images={images} />
+            </div>
           )}
         </div>
         
