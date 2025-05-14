@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,16 @@ interface ComparisonArenaProps {
   images: ImageItem[];
   onRatingsUpdated: (updatedImages: ImageItem[]) => void;
   onReset: () => void;
+  needsImageFiles?: boolean;
+  hasImagesWithFiles?: boolean;
 }
 
 const ComparisonArena: React.FC<ComparisonArenaProps> = ({ 
   images, 
   onRatingsUpdated,
-  onReset 
+  onReset,
+  needsImageFiles = false,
+  hasImagesWithFiles = true
 }) => {
   const [imageA, setImageA] = useState<ImageItem | null>(null);
   const [imageB, setImageB] = useState<ImageItem | null>(null);
@@ -26,13 +31,13 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
 
   // Preload all images initially and when images change
   useEffect(() => {
-    if (images.length >= 2) {
+    if (images.length >= 2 && hasImagesWithFiles) {
       const preloadImages = async () => {
         const imageMap = new Map<string, HTMLImageElement>();
         
         // Create an array of promises for preloading
         const preloadPromises = images.map(img => {
-          if (img.url) {
+          if (img.url && img.url !== "#placeholder") {
             return new Promise<void>((resolve) => {
               const imgElement = new Image();
               imgElement.onload = () => {
@@ -59,11 +64,11 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       
       preloadImages();
     }
-  }, [images]);
+  }, [images, hasImagesWithFiles]);
   
   // Select random pair, efficiently using preloaded images
   const selectRandomPair = useCallback((imagesList: ImageItem[]) => {
-    if (imagesList.length < 2) {
+    if (imagesList.length < 2 || !hasImagesWithFiles) {
       setImageA(null);
       setImageB(null);
       return;
@@ -88,19 +93,23 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       setImageB(imgB);
       setIsLoading(false);
     });
-  }, []);
+  }, [hasImagesWithFiles]);
 
   // Initial selection of images
   useEffect(() => {
-    if (images.length >= 2) {
+    if (images.length >= 2 && hasImagesWithFiles) {
       selectRandomPair(images);
+    } else {
+      // Clear any selected images if we don't have image files
+      setImageA(null);
+      setImageB(null);
     }
-  }, [images, selectRandomPair]);
+  }, [images, selectRandomPair, hasImagesWithFiles]);
 
   // Add keyboard event listener
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (isLoading || !imageA || !imageB) return;
+      if (isLoading || !imageA || !imageB || !hasImagesWithFiles || needsImageFiles) return;
 
       if (event.key === "1") {
         handleSelection("A");
@@ -114,10 +123,10 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
     };
-  }, [imageA, imageB, isLoading]);
+  }, [imageA, imageB, isLoading, hasImagesWithFiles, needsImageFiles]);
 
   const handleSelection = (selected: "A" | "B") => {
-    if (!imageA || !imageB || isLoading) return;
+    if (!imageA || !imageB || isLoading || !hasImagesWithFiles) return;
 
     const winner = selected === "A" ? imageA : imageB;
     const loser = selected === "A" ? imageB : imageA;
@@ -178,6 +187,23 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     // Immediate update to next pair
     selectRandomPair(updatedImages);
   };
+
+  // Show a message when image files are needed
+  if (needsImageFiles) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 bg-muted/20 border rounded-md">
+        <h2 className="text-xl font-medium mb-2">Comparisons are paused</h2>
+        <p className="text-center text-muted-foreground mb-4">
+          Please select the image files that correspond to your imported data to continue.
+        </p>
+      </div>
+    );
+  }
+
+  // Don't render the full UI if images don't have files
+  if (!hasImagesWithFiles) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col" ref={containerRef}>

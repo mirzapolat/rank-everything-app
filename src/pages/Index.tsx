@@ -42,8 +42,15 @@ const Index = () => {
     }
   }, []);
 
+  // Check if images have their URL (which means they have actual files)
+  const hasImagesWithFiles = images.length >= 2 && images.every(image => 
+    image.url && image.url !== "#placeholder"
+  );
+
   const handleImagesAdded = (updatedImages: ImageItem[]) => {
     setImages(updatedImages);
+    // Reset the needsImageFiles flag if we're directly adding images
+    setNeedsImageFiles(false);
   };
 
   const handleRatingsUpdated = (updatedImages: ImageItem[]) => {
@@ -59,6 +66,7 @@ const Index = () => {
     setTotalComparisons(0);
     setImagesImported(false);
     setResetDialogOpen(false);
+    setNeedsImageFiles(false);
     toast.success("All images and rankings have been reset");
   };
 
@@ -198,12 +206,14 @@ const Index = () => {
                 <ImageUploader onImagesAdded={handleImagesAdded} />
               )}
               
-              {/* Always show comparison arena on home tab if we have enough images */}
+              {/* Only show comparison arena on home tab if we have enough images AND they have files */}
               {images.length >= 2 && (
                 <ComparisonArena 
                   images={images} 
                   onRatingsUpdated={handleRatingsUpdated}
                   onReset={() => setResetDialogOpen(true)} 
+                  needsImageFiles={needsImageFiles}
+                  hasImagesWithFiles={hasImagesWithFiles}
                 />
               )}
             </div>
@@ -215,8 +225,6 @@ const Index = () => {
             </div>
           )}
         </div>
-        
-        {/* Remove the Reset button from here since we moved it to ComparisonArena */}
       </main>
       
       <ResetDialog
