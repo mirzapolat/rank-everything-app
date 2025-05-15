@@ -1,3 +1,4 @@
+
 import { ImageItem, ComparisonResult } from "../types/image";
 
 const STORAGE_KEY_IMAGES = "elo-arena-images";
@@ -69,21 +70,6 @@ export const saveComparisonResult = (result: ComparisonResult): void => {
 export const getComparisonResults = (): ComparisonResult[] => {
   const storedResults = localStorage.getItem(STORAGE_KEY_RESULTS);
   return storedResults ? JSON.parse(storedResults) : [];
-};
-
-// Function to remove the last comparison result
-export const removeLastComparisonResult = (): ComparisonResult | null => {
-  const results = getComparisonResults();
-  if (results.length === 0) return null;
-  
-  // Remove the last result
-  const removedResult = results.pop();
-  
-  // Save the updated results back to storage
-  localStorage.setItem(STORAGE_KEY_RESULTS, JSON.stringify(results));
-  
-  // Return the removed result so we can use it for undoing
-  return removedResult || null;
 };
 
 export const addNewImages = (files: File[]): ImageItem[] => {

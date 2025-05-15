@@ -1,11 +1,11 @@
+
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageItem } from "@/types/image";
 import { updateRatings } from "@/utils/elo";
-import { saveImagesToLocalStorage, saveComparisonResult, getComparisonResults, removeLastComparisonResult } from "@/utils/imageStorage";
+import { saveImagesToLocalStorage, saveComparisonResult } from "@/utils/imageStorage";
 import { toast } from "sonner";
-import { Undo2 } from "lucide-react";
 
 interface ComparisonArenaProps {
   images: ImageItem[];
@@ -27,16 +27,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalComparisons, setTotalComparisons] = useState<number>(0);
   const [preloadedImages, setPreloadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
-  const [canUndo, setCanUndo] = useState<boolean>(false);
-  const [lastComparisonPair, setLastComparisonPair] = useState<{winner: ImageItem, loser: ImageItem} | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Check if undo is available on mount
-  useEffect(() => {
-    const results = getComparisonResults();
-    setCanUndo(results.length > 0);
-    setTotalComparisons(results.length);
-  }, []);
 
   // Preload all images initially and when images change
   useEffect(() => {
@@ -139,9 +130,6 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
 
     const winner = selected === "A" ? imageA : imageB;
     const loser = selected === "A" ? imageB : imageA;
-    
-    // Store this pair as the last comparison for undo
-    setLastComparisonPair({ winner, loser });
 
     // Calculate new Elo ratings
     const [newWinnerRating, newLoserRating] = updateRatings(
@@ -169,15 +157,12 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       return img;
     });
 
-    // Save the comparison result with both image IDs
+    // Save the comparison result
     saveComparisonResult({
       winnerId: winner.id,
       loserId: loser.id,
       timestamp: Date.now()
     });
-
-    // Enable undo after making a comparison
-    setCanUndo(true);
 
     // Save updated images to storage
     saveImagesToLocalStorage(updatedImages);
@@ -201,69 +186,6 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     
     // Immediate update to next pair
     selectRandomPair(updatedImages);
-  };
-
-  const handleUndo = () => {
-    // Get the last comparison result
-    const lastResult = removeLastComparisonResult();
-    if (!lastResult) {
-      setCanUndo(false);
-      return;
-    }
-    
-    // Find the winner and loser in the current images array
-    const winner = images.find(img => img.id === lastResult.winnerId);
-    const loser = images.find(img => img.id === lastResult.loserId);
-    
-    if (!winner || !loser) {
-      toast.error("Could not find the images from the last comparison");
-      return;
-    }
-    
-    // Restore previous ratings by reverting the Elo calculation
-    // We're using the reverse win (giving the win to the loser) to revert
-    const [restoredLoserRating, restoredWinnerRating] = updateRatings(
-      loser.rating,
-      winner.rating,
-      true
-    );
-    
-    // Update image objects
-    const updatedImages = images.map(img => {
-      if (img.id === winner.id) {
-        return { 
-          ...img, 
-          rating: restoredWinnerRating, 
-          matches: Math.max(0, img.matches - 1)
-        };
-      }
-      if (img.id === loser.id) {
-        return { 
-          ...img, 
-          rating: restoredLoserRating, 
-          matches: Math.max(0, img.matches - 1) 
-        };
-      }
-      return img;
-    });
-    
-    // Check if we can still undo after this operation
-    const remainingResults = getComparisonResults();
-    setCanUndo(remainingResults.length > 0);
-    setTotalComparisons(remainingResults.length);
-    
-    // Save updated images to storage
-    saveImagesToLocalStorage(updatedImages);
-    
-    // Notify parent component
-    onRatingsUpdated(updatedImages);
-    
-    // Show these specific images for the rematch
-    setImageA(winner);
-    setImageB(loser);
-    setIsLoading(false);
-    
-    toast.success("Last comparison undone. Make your choice again!");
   };
 
   // Show a message when image files are needed
@@ -343,19 +265,6 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       </div>
       
       <div className="mt-6 text-center flex justify-center gap-4">
-        {/* Undo button - only shown after at least one comparison */}
-        {canUndo && (
-          <Button
-            onClick={handleUndo}
-            variant="outline"
-            className="text-sm gap-2"
-            title="Undo last comparison"
-          >
-            <Undo2 size={18} />
-            Undo Last
-          </Button>
-        )}
-        
         <Button 
           onClick={() => selectRandomPair(images)}
           variant="outline"
