@@ -1,4 +1,4 @@
-# Rank Everything Demo Application
+# Rank Everything (Demo)
 
 Quick demo application dor ranking large sets od image files using a/b tests and elo ranking method.
 
