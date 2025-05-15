@@ -72,6 +72,18 @@ export const getComparisonResults = (): ComparisonResult[] => {
   return storedResults ? JSON.parse(storedResults) : [];
 };
 
+// New function to remove the last comparison result
+export const removeLastComparisonResult = (): void => {
+  const results = getComparisonResults();
+  if (results.length === 0) return;
+  
+  // Remove the last result
+  results.pop();
+  
+  // Save the updated results back to storage
+  localStorage.setItem(STORAGE_KEY_RESULTS, JSON.stringify(results));
+};
+
 export const addNewImages = (files: File[]): ImageItem[] => {
   const existingImages = getImagesFromLocalStorage();
   
