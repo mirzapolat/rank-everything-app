@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
   const [totalComparisons, setTotalComparisons] = useState<number>(0);
   const [preloadedImages, setPreloadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
   const [canUndo, setCanUndo] = useState<boolean>(false);
+  const [lastComparisonPair, setLastComparisonPair] = useState<{winner: ImageItem, loser: ImageItem} | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Check if undo is available on mount
@@ -139,6 +139,9 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
 
     const winner = selected === "A" ? imageA : imageB;
     const loser = selected === "A" ? imageB : imageA;
+    
+    // Store this pair as the last comparison for undo
+    setLastComparisonPair({ winner, loser });
 
     // Calculate new Elo ratings
     const [newWinnerRating, newLoserRating] = updateRatings(
@@ -166,7 +169,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       return img;
     });
 
-    // Save the comparison result
+    // Save the comparison result with both image IDs
     saveComparisonResult({
       winnerId: winner.id,
       loserId: loser.id,
@@ -202,17 +205,15 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
 
   const handleUndo = () => {
     // Get the last comparison result
-    const results = getComparisonResults();
-    if (results.length === 0) {
+    const lastResult = removeLastComparisonResult();
+    if (!lastResult) {
       setCanUndo(false);
       return;
     }
     
-    const lastComparison = results[results.length - 1];
-    
     // Find the winner and loser in the current images array
-    const winner = images.find(img => img.id === lastComparison.winnerId);
-    const loser = images.find(img => img.id === lastComparison.loserId);
+    const winner = images.find(img => img.id === lastResult.winnerId);
+    const loser = images.find(img => img.id === lastResult.loserId);
     
     if (!winner || !loser) {
       toast.error("Could not find the images from the last comparison");
@@ -245,9 +246,6 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
       }
       return img;
     });
-    
-    // Remove the last comparison result
-    removeLastComparisonResult();
     
     // Check if we can still undo after this operation
     const remainingResults = getComparisonResults();
