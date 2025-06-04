@@ -105,6 +105,21 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
     }
   }, [images, selectRandomPair, hasImagesWithFiles]);
 
+  // Add listener for skip events from parent
+  useEffect(() => {
+    const handleSkipEvent = () => {
+      if (images.length >= 2 && hasImagesWithFiles && !needsImageFiles) {
+        selectRandomPair(images);
+      }
+    };
+
+    window.addEventListener('comparison:skip', handleSkipEvent);
+
+    return () => {
+      window.removeEventListener('comparison:skip', handleSkipEvent);
+    };
+  }, [images, selectRandomPair, hasImagesWithFiles, needsImageFiles]);
+
   // Add keyboard event listener
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -262,17 +277,6 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
             <p className="magazine-body text-ink-gray">Loading image...</p>
           )}
         </Card>
-      </div>
-      
-      <div className="mt-8 text-center">
-        <Button 
-          onClick={() => selectRandomPair(images)}
-          variant="outline"
-          disabled={isLoading}
-          className="magazine-body border-paper-brown/30 hover:bg-paper-beige text-ink-charcoal"
-        >
-          Skip this pair
-        </Button>
       </div>
       
       {totalComparisons > 0 && (

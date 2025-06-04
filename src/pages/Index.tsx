@@ -159,6 +159,11 @@ const Index = () => {
     }
   };
 
+  const handleSkipPair = () => {
+    // Find the ComparisonArena component and trigger skip
+    window.dispatchEvent(new CustomEvent('comparison:skip'));
+  };
+
   useEffect(() => {
     // Update document title
     document.title = "Rank Everything App";
@@ -197,14 +202,27 @@ const Index = () => {
                   </div>
                 )}
                 
-                <Button 
-                  onClick={handleImportClick}
-                  variant="outline" 
-                  className="w-full md:w-auto magazine-body border-paper-brown/30 hover:bg-paper-beige text-ink-charcoal"
-                  disabled={importLoading}
-                >
-                  {importLoading ? "Importing..." : "Import Progress"}
-                </Button>
+                <div className="flex gap-3">
+                  {/* Skip button - only show when we have images with files and not needing files */}
+                  {images.length >= 2 && hasImagesWithFiles && !needsImageFiles && (
+                    <Button 
+                      onClick={handleSkipPair}
+                      variant="outline"
+                      className="magazine-body border-paper-brown/30 hover:bg-paper-beige text-ink-charcoal"
+                    >
+                      Skip this pair
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    onClick={handleImportClick}
+                    variant="outline" 
+                    className="w-full md:w-auto magazine-body border-paper-brown/30 hover:bg-paper-beige text-ink-charcoal"
+                    disabled={importLoading}
+                  >
+                    {importLoading ? "Importing..." : "Import Progress"}
+                  </Button>
+                </div>
               </div>
               
               {/* Show file selection options after importing */}
