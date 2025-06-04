@@ -16,54 +16,60 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, imageCount }) =
   const [resetDialogOpen, setResetDialogOpen] = React.useState(false);
   
   return (
-    <header className="py-6">
-      <div className="container max-w-6xl mx-auto px-4 flex flex-col gap-4">
+    <header className="py-8 border-b border-paper-tan bg-paper-cream/50">
+      <div className="container max-w-6xl mx-auto px-4 flex flex-col gap-6">
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"
             size="icon"
             onClick={() => setResetDialogOpen(true)}
-            className="h-9 w-9 rounded-full"
+            className="h-9 w-9 rounded-full border-paper-brown/30 hover:bg-paper-beige"
             aria-label="Reset all data"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-4 w-4 text-paper-brown" />
           </Button>
           <ThemeToggle />
         </div>
         
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-center mb-2">
+        <div className="text-center">
+          <h1 className="magazine-title text-5xl md:text-6xl mb-3 text-ink-black">
             Rank Everything
           </h1>
-          <p className="text-center text-muted-foreground mb-6">
-            Compare images head-to-head and rank them using the Elo rating system
+          <div className="w-24 h-px bg-paper-brown mx-auto mb-4"></div>
+          <p className="magazine-subtitle text-lg text-ink-charcoal max-w-2xl mx-auto">
+            A sophisticated comparison tool using the Elo rating system to rank your visual preferences
           </p>
         </div>
         
         <div className="flex justify-center">
           <Tabs value={activeTab} onValueChange={onTabChange} className="w-full max-w-md">
-            <TabsList className="grid grid-cols-2">
-              <TabsTrigger value="home">
-                Home
+            <TabsList className="grid grid-cols-2 bg-paper-beige border border-paper-tan">
+              <TabsTrigger 
+                value="home" 
+                className="magazine-body font-medium data-[state=active]:bg-paper-cream data-[state=active]:text-ink-black"
+              >
+                Gallery
                 {imageCount >= 2 && (
                   <span className="ml-1.5 text-xs bg-teal text-white rounded-full px-1.5 py-0.5">
                     {imageCount}
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="rankings">Rankings</TabsTrigger>
+              <TabsTrigger 
+                value="rankings"
+                className="magazine-body font-medium data-[state=active]:bg-paper-cream data-[state=active]:text-ink-black"
+              >
+                Rankings
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </div>
       
-      {/* ResetDialog connected to the header reset button */}
       <ResetDialog
         open={resetDialogOpen}
         onOpenChange={setResetDialogOpen}
         onConfirm={() => {
-          // This will be connected to the actual reset functionality from Index.tsx
-          // The Index component will inject the actual reset handler
           window.dispatchEvent(new CustomEvent('app:reset'));
         }}
       />

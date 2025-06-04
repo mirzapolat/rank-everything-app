@@ -206,76 +206,77 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
 
   return (
     <div className="flex flex-col" ref={containerRef}>
-      <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold">Which image do you prefer?</h2>
-        <p className="text-muted-foreground">Click on the image you like better or press key <strong>1</strong> or <strong>2</strong></p>
+      <div className="text-center mb-8">
+        <h2 className="magazine-title text-3xl text-ink-black mb-3">Which image do you prefer?</h2>
+        <div className="w-16 h-px bg-paper-brown mx-auto mb-4"></div>
+        <p className="magazine-body text-ink-charcoal">Choose the image you find more appealing or press key <strong>1</strong> or <strong>2</strong></p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         {/* Image A */}
         <Card 
-          className={`overflow-hidden border-2 transition-colors
-            hover:border-teal cursor-pointer
+          className={`overflow-hidden border-2 border-paper-tan transition-all duration-300
+            hover:border-teal hover:shadow-lg cursor-pointer bg-paper-cream/80
             ${!imageA || isLoading ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageA && handleSelection("A")}
         >
-          <div className="relative p-2 text-center font-bold text-muted-foreground">
-            1
+          <div className="relative p-3 text-center">
+            <span className="magazine-title text-2xl font-bold text-ink-charcoal">1</span>
           </div>
           {imageA && !isLoading ? (
-            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-muted/20">
+            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-paper-beige/30">
               <img 
                 src={imageA.url} 
                 alt={imageA.name}
-                className="max-h-full max-w-full object-contain"
+                className="max-h-full max-w-full object-contain shadow-sm"
                 draggable={false}
               />
             </div>
           ) : (
-            <p className="text-muted-foreground">Loading image...</p>
+            <p className="magazine-body text-ink-gray">Loading image...</p>
           )}
         </Card>
         
         {/* Image B */}
         <Card 
-          className={`overflow-hidden border-2 transition-colors
-            hover:border-teal cursor-pointer
+          className={`overflow-hidden border-2 border-paper-tan transition-all duration-300
+            hover:border-teal hover:shadow-lg cursor-pointer bg-paper-cream/80
             ${!imageB || isLoading ? 'h-48 flex items-center justify-center' : ''}`
           }
           onClick={() => !isLoading && imageB && handleSelection("B")}
         >
-          <div className="relative p-2 text-center font-bold text-muted-foreground">
-            2
+          <div className="relative p-3 text-center">
+            <span className="magazine-title text-2xl font-bold text-ink-charcoal">2</span>
           </div>
           {imageB && !isLoading ? (
-            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-muted/20">
+            <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-paper-beige/30">
               <img 
                 src={imageB.url} 
                 alt={imageB.name}
-                className="max-h-full max-w-full object-contain"
+                className="max-h-full max-w-full object-contain shadow-sm"
                 draggable={false}
               />
             </div>
           ) : (
-            <p className="text-muted-foreground">Loading image...</p>
+            <p className="magazine-body text-ink-gray">Loading image...</p>
           )}
         </Card>
       </div>
       
-      <div className="mt-6 text-center">
+      <div className="mt-8 text-center">
         <Button 
           onClick={() => selectRandomPair(images)}
           variant="outline"
           disabled={isLoading}
-          className="text-sm"
+          className="magazine-body border-paper-brown/30 hover:bg-paper-beige text-ink-charcoal"
         >
           Skip this pair
         </Button>
       </div>
       
       {totalComparisons > 0 && (
-        <div className="mt-4 text-center text-sm text-muted-foreground">
+        <div className="mt-6 text-center magazine-body text-ink-gray">
           {totalComparisons} comparison{totalComparisons !== 1 ? 's' : ''} completed
         </div>
       )}

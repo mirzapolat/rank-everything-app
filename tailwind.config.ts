@@ -19,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'didot': ['Didot', 'Times', 'serif'],
+				'serif': ['Source Serif Pro', 'Georgia', 'serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -54,9 +58,21 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				teal: {
-					DEFAULT: '#0d9488',
-					light: '#14b8a6',
-					dark: '#0f766e',
+					DEFAULT: '#2d5a5a',
+					light: '#4a7575',
+					dark: '#1a3d3d',
+				},
+				paper: {
+					cream: '#faf8f3',
+					beige: '#f5f1e8',
+					tan: '#e8dcc6',
+					brown: '#8b7355',
+					dark: '#4a3f2a',
+				},
+				ink: {
+					black: '#1a1a1a',
+					charcoal: '#2d2d2d',
+					gray: '#666666',
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

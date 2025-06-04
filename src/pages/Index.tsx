@@ -165,7 +165,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-paper-cream">
       <Header 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
@@ -174,16 +174,16 @@ const Index = () => {
       
       <main className="container max-w-6xl mx-auto px-4 pb-16">
         {/* Tab content */}
-        <div className="mt-8">
+        <div className="mt-12">
           {activeTab === "home" && (
-            <div className="space-y-8">
-              <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+            <div className="space-y-12">
+              <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-center">
                 {/* Export button - only show when images imported */}
                 {imagesImported && (
                   <Button 
                     onClick={handleExport}
                     variant="outline" 
-                    className="w-full md:w-auto"
+                    className="w-full md:w-auto magazine-body border-paper-brown/30 hover:bg-paper-beige text-ink-charcoal"
                     disabled={images.length === 0}
                   >
                     Export Progress
@@ -192,7 +192,7 @@ const Index = () => {
                 
                 {/* Total comparisons counter - show in middle */}
                 {totalComparisons > 0 && (
-                  <div className="text-center font-medium text-lg">
+                  <div className="text-center magazine-body font-semibold text-xl text-ink-black">
                     {Math.round(totalComparisons)} comparison{totalComparisons !== 1 ? 's' : ''} completed
                   </div>
                 )}
@@ -200,7 +200,7 @@ const Index = () => {
                 <Button 
                   onClick={handleImportClick}
                   variant="outline" 
-                  className="w-full md:w-auto"
+                  className="w-full md:w-auto magazine-body border-paper-brown/30 hover:bg-paper-beige text-ink-charcoal"
                   disabled={importLoading}
                 >
                   {importLoading ? "Importing..." : "Import Progress"}
@@ -209,10 +209,10 @@ const Index = () => {
               
               {/* Show file selection options after importing */}
               {needsImageFiles && (
-                <Card className="p-6 flex flex-col items-center justify-center border-dashed border-2 bg-muted/50">
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-medium">Select Image Files</h3>
-                    <p className="text-sm text-muted-foreground">
+                <Card className="p-8 flex flex-col items-center justify-center border-dashed border-2 border-paper-brown/30 bg-paper-beige/50">
+                  <div className="text-center mb-6">
+                    <h3 className="magazine-title text-xl text-ink-black mb-2">Select Image Files</h3>
+                    <p className="magazine-body text-ink-gray">
                       Choose how you want to add images to match with your imported data
                     </p>
                   </div>
@@ -240,7 +240,7 @@ const Index = () => {
                   <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
                     <Button 
                       onClick={handleSelectFiles}
-                      className="flex-1 gap-2"
+                      className="flex-1 gap-2 magazine-body bg-teal hover:bg-teal-dark"
                       variant="outline"
                     >
                       <Upload size={18} />
@@ -249,7 +249,7 @@ const Index = () => {
                     
                     <Button 
                       onClick={handleSelectFolder}
-                      className="flex-1 gap-2"
+                      className="flex-1 gap-2 magazine-body bg-teal hover:bg-teal-dark text-white"
                     >
                       <Folder size={18} />
                       Select Folder
@@ -277,7 +277,7 @@ const Index = () => {
           )}
           
           {activeTab === "rankings" && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <RankingsList images={images} />
             </div>
           )}
