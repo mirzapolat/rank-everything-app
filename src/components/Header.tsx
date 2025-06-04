@@ -32,11 +32,11 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, imageCount }) =
         </div>
         
         <div className="text-center">
-          <h1 className="magazine-title text-5xl md:text-6xl mb-3 text-ink-black">
+          <h1 className="magazine-main-title text-5xl md:text-6xl mb-3 text-ink-black">
             Rank Everything
           </h1>
           <div className="w-24 h-px bg-paper-brown mx-auto mb-4"></div>
-          <p className="magazine-subtitle text-lg text-ink-charcoal max-w-2xl mx-auto">
+          <p className="magazine-main-subtitle text-lg text-ink-charcoal max-w-2xl mx-auto">
             A sophisticated comparison tool using the Elo rating system to rank your visual preferences
           </p>
         </div>

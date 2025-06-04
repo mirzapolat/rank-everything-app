@@ -99,14 +99,14 @@
   }
 }
 
-/* Magazine typography styles */
-.magazine-title {
+/* Magazine typography styles - only for main titles */
+.magazine-main-title {
   @apply font-didot font-bold tracking-wide;
   letter-spacing: 0.05em;
 }
 
-.magazine-subtitle {
-  @apply font-serif font-normal tracking-wide;
+.magazine-main-subtitle {
+  @apply font-didot font-normal tracking-wide;
   letter-spacing: 0.02em;
 }
 

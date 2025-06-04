@@ -13,6 +13,7 @@ import Header from "@/components/Header";
 import ImageUploader from "@/components/ImageUploader";
 import ComparisonArena from "@/components/ComparisonArena";
 import RankingsList from "@/components/RankingsList";
+import InstructionsBox from "@/components/InstructionsBox";
 import { Upload, Folder } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -178,10 +179,16 @@ const Index = () => {
       />
       
       <main className="container max-w-6xl mx-auto px-4 pb-16">
-        {/* Tab content */}
+        {/* Instructions Box - show on both tabs */}
         <div className="mt-12">
+          <InstructionsBox />
+        </div>
+        
+        {/* Tab content */}
+        <div>
           {activeTab === "home" && (
             <div className="space-y-12">
+              {/* Controls section */}
               <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-center">
                 {/* Export button - only show when images imported */}
                 {imagesImported && (
@@ -229,7 +236,7 @@ const Index = () => {
               {needsImageFiles && (
                 <Card className="p-8 flex flex-col items-center justify-center border-dashed border-2 border-paper-brown/30 bg-paper-beige/50">
                   <div className="text-center mb-6">
-                    <h3 className="magazine-title text-xl text-ink-black mb-2">Select Image Files</h3>
+                    <h3 className="text-xl text-ink-black mb-2 font-medium">Select Image Files</h3>
                     <p className="magazine-body text-ink-gray">
                       Choose how you want to add images to match with your imported data
                     </p>

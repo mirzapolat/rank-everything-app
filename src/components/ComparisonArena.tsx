@@ -221,12 +221,6 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
 
   return (
     <div className="flex flex-col" ref={containerRef}>
-      <div className="text-center mb-8">
-        <h2 className="magazine-title text-3xl text-ink-black mb-3">Which image do you prefer?</h2>
-        <div className="w-16 h-px bg-paper-brown mx-auto mb-4"></div>
-        <p className="magazine-body text-ink-charcoal">Choose the image you find more appealing or press key <strong>1</strong> or <strong>2</strong></p>
-      </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         {/* Image A */}
         <Card 
@@ -237,7 +231,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
           onClick={() => !isLoading && imageA && handleSelection("A")}
         >
           <div className="relative p-3 text-center">
-            <span className="magazine-title text-2xl font-bold text-ink-charcoal">1</span>
+            <span className="text-2xl font-bold text-ink-charcoal">1</span>
           </div>
           {imageA && !isLoading ? (
             <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-paper-beige/30">
@@ -262,7 +256,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
           onClick={() => !isLoading && imageB && handleSelection("B")}
         >
           <div className="relative p-3 text-center">
-            <span className="magazine-title text-2xl font-bold text-ink-charcoal">2</span>
+            <span className="text-2xl font-bold text-ink-charcoal">2</span>
           </div>
           {imageB && !isLoading ? (
             <div className="relative h-[300px] md:h-[400px] w-full flex items-center justify-center bg-paper-beige/30">
