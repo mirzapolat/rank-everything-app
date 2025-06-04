@@ -42,13 +42,13 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, imageCount }) =
         </div>
         
         <div className="flex justify-center">
-          <Tabs value={activeTab} onValueChange={onTabChange} className="w-full max-w-md">
-            <TabsList className="grid grid-cols-2 bg-paper-beige border border-paper-tan">
+          <Tabs value={activeTab} onValueChange={onTabChange} className="w-full max-w-sm">
+            <TabsList className="grid grid-cols-2 w-full bg-paper-beige border border-paper-tan h-12">
               <TabsTrigger 
                 value="home" 
-                className="magazine-body font-medium data-[state=active]:bg-paper-cream data-[state=active]:text-ink-black"
+                className="magazine-body font-medium data-[state=active]:bg-paper-cream data-[state=active]:text-ink-black text-sm px-4 flex items-center justify-center"
               >
-                Gallery
+                Compare
                 {imageCount >= 2 && (
                   <span className="ml-1.5 text-xs bg-teal text-white rounded-full px-1.5 py-0.5">
                     {imageCount}
@@ -57,9 +57,9 @@ const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange, imageCount }) =
               </TabsTrigger>
               <TabsTrigger 
                 value="rankings"
-                className="magazine-body font-medium data-[state=active]:bg-paper-cream data-[state=active]:text-ink-black"
+                className="magazine-body font-medium data-[state=active]:bg-paper-cream data-[state=active]:text-ink-black text-sm px-4 flex items-center justify-center"
               >
-                Rankings
+                Results
               </TabsTrigger>
             </TabsList>
           </Tabs>
