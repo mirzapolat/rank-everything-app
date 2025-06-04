@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -264,7 +263,7 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
         </Card>
       </div>
       
-      <div className="mt-6 text-center flex justify-center gap-4">
+      <div className="mt-6 text-center">
         <Button 
           onClick={() => selectRandomPair(images)}
           variant="outline"
@@ -272,14 +271,6 @@ const ComparisonArena: React.FC<ComparisonArenaProps> = ({
           className="text-sm"
         >
           Skip this pair
-        </Button>
-        
-        <Button
-          onClick={onReset}
-          variant="outline"
-          className="text-sm text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-        >
-          Reset All Data
         </Button>
       </div>
       
